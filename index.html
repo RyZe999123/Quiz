@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Quiz illimités générés par IA - Testez vos connaissances sur tous les sujets" />
+  <title>Quiz IA — Questions illimitées</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>🧠 Quiz IA</h1>
+    <button id="theme-toggle" class="icon-btn" title="Changer de thème" aria-label="Changer de thème">🌓</button>
+  </header>
+
+  <main id="app">
+    <!-- Écran 1 : Accueil / Configuration -->
+    <section id="screen-home" class="screen active">
+      <div class="card">
+        <h2>Questions illimitées générées par IA</h2>
+        <p class="subtitle">Choisissez une catégorie, un niveau, et laissez l'IA créer un quiz sur mesure.</p>
+
+        <div id="api-key-section" class="api-key-section">
+          <label for="api-key">Clé API Groq <span class="required">*</span></label>
+          <div class="input-row">
+            <input type="password" id="api-key" placeholder="gsk_..." autocomplete="off" />
+            <button id="save-key" class="btn-secondary">Sauver</button>
+          </div>
+          <p class="hint">
+            Pas de clé ? <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Obtenez-en une gratuite ici</a> (30 secondes, aucune carte bleue).
+          </p>
+          <p id="key-status" class="key-status"></p>
+        </div>
+
+        <form id="quiz-form">
+          <div class="form-group">
+            <label for="category">Catégorie</label>
+            <select id="category">
+              <option value="Culture générale">📚 Culture générale</option>
+              <option value="Sciences">🔬 Sciences</option>
+              <option value="Histoire">🏛️ Histoire</option>
+              <option value="Géographie">🌍 Géographie</option>
+              <option value="Cinéma">🎬 Cinéma</option>
+              <option value="Sport">⚽ Sport</option>
+              <option value="Technologie">💻 Technologie</option>
+              <option value="Littérature">📖 Littérature</option>
+              <option value="Musique">🎵 Musique</option>
+              <option value="Art">🎨 Art</option>
+              <option value="__custom__">✏️ Personnalisée...</option>
+            </select>
+            <input type="text" id="category-custom" placeholder="Ex: Mythologie grecque" style="display:none; margin-top: 0.5rem;" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="difficulty">Niveau</label>
+              <select id="difficulty">
+                <option value="Facile">Facile</option>
+                <option value="Moyen" selected>Moyen</option>
+                <option value="Difficile">Difficile</option>
+                <option value="Expert">Expert</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="language">Langue</label>
+              <select id="language">
+                <option value="Français" selected>Français</option>
+                <option value="Anglais">Anglais</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="count">Nombre de questions</label>
+            <select id="count">
+              <option value="5">5 questions</option>
+              <option value="10" selected>10 questions</option>
+              <option value="20">20 questions</option>
+              <option value="0">♾️ Illimité</option>
+            </select>
+          </div>
+
+          <button type="submit" id="start-btn" class="btn-primary">Commencer le quiz</button>
+        </form>
+
+        <div id="best-scores" class="best-scores"></div>
+      </div>
+    </section>
+
+    <!-- Écran 2 : Quiz en cours -->
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-header">
+        <div class="progress-info">
+          <span id="question-counter">Question 1</span>
+          <span id="streak-display" class="streak"></span>
+        </div>
+        <div id="score-display" class="score-display">Score: 0</div>
+      </div>
+
+      <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+
+      <div class="card question-card">
+        <div id="loading-question" class="loading">
+          <div class="spinner"></div>
+          <p>Génération de la question...</p>
+        </div>
+
+        <div id="question-content" style="display:none;">
+          <p id="question-text" class="question-text"></p>
+          <div id="options-container" class="options-container"></div>
+          <div id="feedback" class="feedback" style="display:none;">
+            <p id="feedback-text"></p>
+            <p id="explanation" class="explanation"></p>
+            <button id="more-info-btn" type="button" class="more-info-btn">💡 En savoir plus sur la réponse</button>
+            <div id="more-info-content" class="more-info-content" style="display:none;"></div>
+          </div>
+          <div class="quiz-actions">
+            <button id="next-btn" class="btn-primary" style="display:none;">Question suivante →</button>
+            <button id="stop-btn" class="btn-secondary">Arrêter</button>
+          </div>
+        </div>
+
+        <div id="error-panel" class="error-panel" style="display:none;">
+          <p id="error-text"></p>
+          <button id="retry-btn" class="btn-primary">Réessayer</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Écran 3 : Résultats -->
+    <section id="screen-results" class="screen">
+      <div class="card">
+        <h2>🎉 Quiz terminé !</h2>
+        <div class="results-summary">
+          <div class="result-stat">
+            <div class="stat-value" id="final-score">0/0</div>
+            <div class="stat-label">Score</div>
+          </div>
+          <div class="result-stat">
+            <div class="stat-value" id="final-percent">0%</div>
+            <div class="stat-label">Réussite</div>
+          </div>
+          <div class="result-stat">
+            <div class="stat-value" id="final-time">0:00</div>
+            <div class="stat-label">Durée</div>
+          </div>
+        </div>
+
+        <div id="review-list" class="review-list"></div>
+
+        <div class="quiz-actions">
+          <button id="replay-btn" class="btn-primary">Rejouer</button>
+          <button id="home-btn" class="btn-secondary">Nouvelle catégorie</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Propulsé par <a href="https://groq.com" target="_blank" rel="noopener">Groq</a> · <a href="#" id="reset-key">Changer de clé API</a></p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
