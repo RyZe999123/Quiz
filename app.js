@@ -48,6 +48,31 @@ function applyInitialTheme() {
   if (saved) document.documentElement.setAttribute('data-theme', saved);
 }
 
+// Bridge entre les pill-buttons segmentés et un <select hidden> que lit le form.
+function wireSeg(segId, hiddenId) {
+  const seg = document.getElementById(segId);
+  const hidden = document.getElementById(hiddenId);
+  if (!seg || !hidden) return;
+  const initial = hidden.value;
+  seg.querySelectorAll('button').forEach(b => {
+    const on = b.getAttribute('data-val') === initial;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-checked', String(on));
+  });
+  seg.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-val]');
+    if (!btn) return;
+    const v = btn.getAttribute('data-val');
+    seg.querySelectorAll('button').forEach(b => {
+      const on = b === btn;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-checked', String(on));
+    });
+    hidden.value = v;
+    hidden.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+}
+
 function hydrateForm() {
   const prefs = getPrefs();
   if (prefs.category) {
@@ -62,6 +87,9 @@ function hydrateForm() {
   if (prefs.difficulty) $('difficulty').value = prefs.difficulty;
   if (prefs.language) $('language').value = prefs.language;
   if (prefs.count !== undefined) $('count').value = String(prefs.count);
+
+  wireSeg('difficulty-seg', 'difficulty');
+  wireSeg('count-seg', 'count');
 }
 
 function hydrateApiKey() {
@@ -296,7 +324,7 @@ function renderQuestion() {
   $('score-display').textContent = `Score: ${state.score}`;
 
   if (state.streak >= 3) {
-    $('streak-display').textContent = `🔥 ${state.streak} d'affilée`;
+    $('streak-display').textContent = `↗ ${state.streak} d'affilée`;
     $('streak-display').style.display = 'inline-block';
   } else {
     $('streak-display').style.display = 'none';
@@ -328,7 +356,7 @@ function renderQuestion() {
   const moreBtn = $('more-info-btn');
   const moreContent = $('more-info-content');
   moreBtn.disabled = false;
-  moreBtn.textContent = '💡 En savoir plus sur la réponse';
+  moreBtn.textContent = 'En savoir plus sur la réponse';
   moreBtn.style.display = 'inline-block';
   moreContent.style.display = 'none';
   moreContent.classList.remove('error');
@@ -363,7 +391,7 @@ async function onMoreInfo() {
     if (err instanceof ApiError && err.code === 'RATE_LIMIT') msg = '⏳ ' + err.message;
     content.textContent = msg;
     btn.disabled = false;
-    btn.textContent = '🔄 Réessayer';
+    btn.textContent = 'Réessayer';
   }
 }
 

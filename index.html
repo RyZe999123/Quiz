@@ -1,140 +1,230 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-variant="A" data-density="cozy" data-accent="blue">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Quiz illimités générés par IA - Testez vos connaissances sur tous les sujets" />
-  <title>Quiz IA — Questions illimitées</title>
+  <meta name="description" content="Quiz illimités générés par IA" />
+  <title>Quiz IA</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header class="app-header">
-    <h1>🧠 Quiz IA</h1>
-    <button id="theme-toggle" class="icon-btn" title="Changer de thème" aria-label="Changer de thème">🌓</button>
+
+  <!-- Top chrome: minimal pill nav -->
+  <header class="chrome">
+    <div class="chrome-inner">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
+        </svg>
+        <span class="brand-name">Quiz</span>
+        <span class="brand-dot">·</span>
+        <span class="brand-sub">IA</span>
+      </div>
+
+      <div class="chrome-actions">
+        <button id="theme-toggle" class="icon-btn" title="Changer de thème" aria-label="Changer de thème">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 13.5A8 8 0 1 1 10.5 4a6.5 6.5 0 0 0 9.5 9.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
   </header>
 
   <main id="app">
-    <!-- Écran 1 : Accueil / Configuration -->
+
+    <!-- ================= Screen 1 : Home ================= -->
     <section id="screen-home" class="screen active">
-      <div class="card">
-        <h2>Questions illimitées générées par IA</h2>
-        <p class="subtitle">Choisissez une catégorie, un niveau, et laissez l'IA créer un quiz sur mesure.</p>
+      <div class="home-grid">
+        <!-- Hero / Intro column -->
+        <aside class="home-intro">
+          <p class="eyebrow">Générateur</p>
+          <h1 class="display">Un quiz,<br/>sur <em>n'importe quoi</em>.</h1>
+          <p class="lede">Choisissez un sujet. L'IA écrit les questions. Jouez sans limite.</p>
 
-        <div id="api-key-section" class="api-key-section">
-          <label for="api-key">Clé API Groq <span class="required">*</span></label>
-          <div class="input-row">
-            <input type="password" id="api-key" placeholder="gsk_..." autocomplete="off" />
-            <button id="save-key" class="btn-secondary">Sauver</button>
+          <div class="meta-row">
+            <div class="meta">
+              <span class="meta-k">Génération</span>
+              <span class="meta-v">~300ms</span>
+            </div>
+            <div class="meta">
+              <span class="meta-k">Modèle</span>
+              <span class="meta-v">Llama 3.3 · 70B</span>
+            </div>
+            <div class="meta">
+              <span class="meta-k">Vie privée</span>
+              <span class="meta-v">Local-only</span>
+            </div>
           </div>
-          <p class="hint">
-            Pas de clé ? <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Obtenez-en une gratuite ici</a> (30 secondes, aucune carte bleue).
-          </p>
-          <p id="key-status" class="key-status"></p>
+
+          <div id="best-scores" class="best-scores"></div>
+        </aside>
+
+        <!-- Card column -->
+        <div class="home-card">
+          <div class="card">
+            <div class="card-header">
+              <h2>Nouveau quiz</h2>
+              <p class="subtitle">Paramètres</p>
+            </div>
+
+            <!-- API key -->
+            <div id="api-key-section" class="api-key-section">
+              <div class="field">
+                <label for="api-key">Clé API Groq</label>
+                <div class="input-row">
+                  <input type="password" id="api-key" placeholder="gsk_…" autocomplete="off" />
+                  <button id="save-key" class="btn btn-ghost">Enregistrer</button>
+                </div>
+                <p class="hint">
+                  <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Obtenir une clé gratuite</a> · stockée dans ce navigateur uniquement.
+                </p>
+                <p id="key-status" class="key-status"></p>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <form id="quiz-form" class="form">
+              <div class="field">
+                <label for="category">Catégorie</label>
+                <select id="category">
+                  <option value="Culture générale">Culture générale</option>
+                  <option value="Sciences">Sciences</option>
+                  <option value="Histoire">Histoire</option>
+                  <option value="Géographie">Géographie</option>
+                  <option value="Cinéma">Cinéma</option>
+                  <option value="Sport">Sport</option>
+                  <option value="Technologie">Technologie</option>
+                  <option value="Littérature">Littérature</option>
+                  <option value="Musique">Musique</option>
+                  <option value="Art">Art</option>
+                  <option value="__custom__">Personnalisée…</option>
+                </select>
+                <input type="text" id="category-custom" placeholder="Ex : mythologie grecque" style="display:none;" />
+              </div>
+
+              <div class="field">
+                <label>Difficulté</label>
+                <div class="segmented" id="difficulty-seg" role="radiogroup">
+                  <button type="button" role="radio" data-val="Facile">Facile</button>
+                  <button type="button" role="radio" data-val="Moyen" aria-checked="true" class="on">Moyen</button>
+                  <button type="button" role="radio" data-val="Difficile">Difficile</button>
+                  <button type="button" role="radio" data-val="Expert">Expert</button>
+                </div>
+                <select id="difficulty" hidden>
+                  <option value="Facile">Facile</option>
+                  <option value="Moyen" selected>Moyen</option>
+                  <option value="Difficile">Difficile</option>
+                  <option value="Expert">Expert</option>
+                </select>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="language">Langue</label>
+                  <select id="language">
+                    <option value="Français" selected>Français</option>
+                    <option value="Anglais">Anglais</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label>Questions</label>
+                  <div class="segmented small" id="count-seg" role="radiogroup">
+                    <button type="button" role="radio" data-val="5">5</button>
+                    <button type="button" role="radio" data-val="10" aria-checked="true" class="on">10</button>
+                    <button type="button" role="radio" data-val="20">20</button>
+                    <button type="button" role="radio" data-val="0" title="Illimité">∞</button>
+                  </div>
+                  <select id="count" hidden>
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                    <option value="0">0</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" id="start-btn" class="btn btn-primary btn-lg">
+                <span>Commencer</span>
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </form>
+          </div>
         </div>
-
-        <form id="quiz-form">
-          <div class="form-group">
-            <label for="category">Catégorie</label>
-            <select id="category">
-              <option value="Culture générale">📚 Culture générale</option>
-              <option value="Sciences">🔬 Sciences</option>
-              <option value="Histoire">🏛️ Histoire</option>
-              <option value="Géographie">🌍 Géographie</option>
-              <option value="Cinéma">🎬 Cinéma</option>
-              <option value="Sport">⚽ Sport</option>
-              <option value="Technologie">💻 Technologie</option>
-              <option value="Littérature">📖 Littérature</option>
-              <option value="Musique">🎵 Musique</option>
-              <option value="Art">🎨 Art</option>
-              <option value="__custom__">✏️ Personnalisée...</option>
-            </select>
-            <input type="text" id="category-custom" placeholder="Ex: Mythologie grecque" style="display:none; margin-top: 0.5rem;" />
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="difficulty">Niveau</label>
-              <select id="difficulty">
-                <option value="Facile">Facile</option>
-                <option value="Moyen" selected>Moyen</option>
-                <option value="Difficile">Difficile</option>
-                <option value="Expert">Expert</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="language">Langue</label>
-              <select id="language">
-                <option value="Français" selected>Français</option>
-                <option value="Anglais">Anglais</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="count">Nombre de questions</label>
-            <select id="count">
-              <option value="5">5 questions</option>
-              <option value="10" selected>10 questions</option>
-              <option value="20">20 questions</option>
-              <option value="0">♾️ Illimité</option>
-            </select>
-          </div>
-
-          <button type="submit" id="start-btn" class="btn-primary">Commencer le quiz</button>
-        </form>
-
-        <div id="best-scores" class="best-scores"></div>
       </div>
     </section>
 
-    <!-- Écran 2 : Quiz en cours -->
+    <!-- ================= Screen 2 : Quiz ================= -->
     <section id="screen-quiz" class="screen">
-      <div class="quiz-header">
-        <div class="progress-info">
-          <span id="question-counter">Question 1</span>
-          <span id="streak-display" class="streak"></span>
-        </div>
-        <div id="score-display" class="score-display">Score: 0</div>
-      </div>
 
-      <div class="progress-bar">
-        <div id="progress-fill" class="progress-fill"></div>
-      </div>
+      <div class="quiz-shell">
 
-      <div class="card question-card">
-        <div id="loading-question" class="loading">
-          <div class="spinner"></div>
-          <p>Génération de la question...</p>
-        </div>
-
-        <div id="question-content" style="display:none;">
-          <p id="question-text" class="question-text"></p>
-          <div id="options-container" class="options-container"></div>
-          <div id="feedback" class="feedback" style="display:none;">
-            <p id="feedback-text"></p>
-            <p id="explanation" class="explanation"></p>
-            <button id="more-info-btn" type="button" class="more-info-btn">💡 En savoir plus sur la réponse</button>
-            <div id="more-info-content" class="more-info-content" style="display:none;"></div>
+        <!-- Top rail -->
+        <div class="quiz-rail">
+          <div class="rail-left">
+            <span id="question-counter" class="counter">Question 1</span>
+            <span id="streak-display" class="streak" style="display:none;"></span>
           </div>
-          <div class="quiz-actions">
-            <button id="next-btn" class="btn-primary" style="display:none;">Question suivante →</button>
-            <button id="stop-btn" class="btn-secondary">Arrêter</button>
+          <div class="rail-center">
+            <div class="progress-bar">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+          </div>
+          <div class="rail-right">
+            <div id="score-display" class="score-display">Score: 0</div>
           </div>
         </div>
 
-        <div id="error-panel" class="error-panel" style="display:none;">
-          <p id="error-text"></p>
-          <button id="retry-btn" class="btn-primary">Réessayer</button>
+        <!-- Question canvas -->
+        <div class="card question-card">
+          <div id="loading-question" class="loading">
+            <div class="spinner"></div>
+            <p>Génération de la question…</p>
+          </div>
+
+          <div id="question-content" style="display:none;">
+            <p class="kicker">Question</p>
+            <p id="question-text" class="question-text"></p>
+            <div id="options-container" class="options-container"></div>
+
+            <div id="feedback" class="feedback" style="display:none;">
+              <div class="feedback-head">
+                <span class="feedback-dot" aria-hidden="true"></span>
+                <p id="feedback-text"></p>
+              </div>
+              <p id="explanation" class="explanation"></p>
+              <button id="more-info-btn" type="button" class="btn btn-ghost sm">En savoir plus sur la réponse</button>
+              <div id="more-info-content" class="more-info-content" style="display:none;"></div>
+            </div>
+
+            <div class="quiz-actions">
+              <button id="stop-btn" class="btn btn-ghost">Arrêter</button>
+              <button id="next-btn" class="btn btn-primary" style="display:none;">
+                <span>Suivante</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div id="error-panel" class="error-panel" style="display:none;">
+            <p id="error-text"></p>
+            <button id="retry-btn" class="btn btn-primary">Réessayer</button>
+          </div>
         </div>
+
       </div>
     </section>
 
-    <!-- Écran 3 : Résultats -->
+    <!-- ================= Screen 3 : Results ================= -->
     <section id="screen-results" class="screen">
-      <div class="card">
-        <h2>🎉 Quiz terminé !</h2>
+      <div class="card results-card">
+        <p class="eyebrow">Terminé</p>
+        <h2 class="display sm">Récapitulatif</h2>
+
         <div class="results-summary">
           <div class="result-stat">
             <div class="stat-value" id="final-score">0/0</div>
@@ -150,14 +240,18 @@
           </div>
         </div>
 
+        <div class="divider"></div>
+
+        <h3 class="section-title">Questions</h3>
         <div id="review-list" class="review-list"></div>
 
-        <div class="quiz-actions">
-          <button id="replay-btn" class="btn-primary">Rejouer</button>
-          <button id="home-btn" class="btn-secondary">Nouvelle catégorie</button>
+        <div class="quiz-actions end">
+          <button id="home-btn" class="btn btn-ghost">Nouvelle catégorie</button>
+          <button id="replay-btn" class="btn btn-primary">Rejouer</button>
         </div>
       </div>
     </section>
+
   </main>
 
   <footer class="app-footer">
